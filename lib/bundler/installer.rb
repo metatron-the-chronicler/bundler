@@ -9,11 +9,12 @@ require "bundler/installer/gem_installer"
 module Bundler
   class Installer < Environment
     class << self
-      attr_accessor :post_install_messages, :ambiguous_gems
+      attr_accessor :ambiguous_gems
 
-      Installer.post_install_messages = {}
       Installer.ambiguous_gems = []
     end
+
+    attr_reader :post_install_messages
 
     # Begins the installation process for Bundler.
     # For more information see the #run method on this class.
@@ -21,6 +22,11 @@ module Bundler
       installer = new(root, definition)
       installer.run(options)
       installer
+    end
+
+    def initialize(*)
+      super
+      @post_install_messages = {}
     end
 
     # Runs the install procedures for a specific Gemfile.
@@ -187,7 +193,10 @@ module Bundler
     end
 
     def install_in_parallel(size, standalone, force = false)
-      ParallelInstaller.call(self, specs, size, standalone, force)
+      spec_installations = ParallelInstaller.call(self, specs, size, standalone, force)
+      spec_installations.each do |installation|
+        post_install_messages[installation.name] = installation.post_install_message if installation.has_post_install_message?
+      end
     end
 
     def create_bundle_path
