@@ -99,6 +99,17 @@ module Bundler
       SpecSet.new(materialized.compact)
     end
 
+    def materialized_for_all_platforms
+      names = @specs.map(&:name).uniq
+      @specs.map do |s|
+        next s unless s.is_a?(LazySpecification)
+        s.source.dependency_names = names if s.source.respond_to?(:dependency_names=)
+        spec = s.__materialize__
+        raise GemNotFound, "Could not find #{s.full_name} in any of the sources" unless spec
+        spec
+      end
+    end
+
     def merge(set)
       arr = sorted.dup
       set.each do |s|

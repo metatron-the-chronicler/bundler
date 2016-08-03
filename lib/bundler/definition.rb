@@ -69,7 +69,8 @@ module Bundler
       if lockfile && File.exist?(lockfile)
         @lockfile_contents = Bundler.read_file(lockfile)
         @locked_gems = LockfileParser.new(@lockfile_contents)
-        @platforms = @locked_gems.platforms
+        @locked_platforms = @locked_gems.platforms
+        @platforms = @locked_platforms.dup
         @locked_bundler_version = @locked_gems.bundler_version
         @locked_ruby_version = @locked_gems.ruby_version
 
@@ -90,6 +91,7 @@ module Bundler
         @locked_deps    = []
         @locked_specs   = SpecSet.new([])
         @locked_sources = []
+        @locked_platforms = []
       end
 
       @unlock[:gems] ||= []
@@ -105,8 +107,9 @@ module Bundler
 
       @gem_version_promoter = create_gem_version_promoter
 
-      current_platform = Bundler.rubygems.platforms.map {|p| generic(p) }.compact.last
+      current_platform = Bundler.rubygems.platforms.last
       add_platform(current_platform)
+      add_platform(generic(current_platform))
 
       @path_changes = converge_paths
       eager_unlock = expand_dependencies(@unlock[:gems])
@@ -402,6 +405,11 @@ module Bundler
       added =   []
       deleted = []
       changed = []
+
+      new_platforms = @platforms - @locked_platforms
+      deleted_platforms = @locked_platforms - @platforms
+      added.concat new_platforms.map {|p| "* platform: #{p}" }
+      deleted.concat deleted_platforms.map {|p| "* platform: #{p}" }
 
       gemfile_sources = sources.lock_sources
 

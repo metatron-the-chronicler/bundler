@@ -167,6 +167,9 @@ module Gem
     MSWIN64 = Gem::Platform.new("mswin64") unless defined?(MSWIN64)
     MINGW = Gem::Platform.new("x86-mingw32") unless defined?(MINGW)
     X64_MINGW = Gem::Platform.new("x64-mingw32") unless defined?(X64_MINGW)
+    # DARWIN = Gem::Platform.new("universal-darwin") unless defined?(DARWIN)
+    # LINUX = Gem::Platform.new("x86-linux") unless defined?(LINUX)
+    # X64_LINUX = Gem::Platform.new("x86_64-linux") unless defined?(X64_LINUX)
 
     undef_method :hash if method_defined? :hash
     def hash
